@@ -1,26 +1,395 @@
-@import "tailwindcss";
+/* globals.css */
 
+/* Tailwind base (déjalo tal cual) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------ */
+/* PALETA SHIFTSITTER */
+/* ------------------ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --navy: #22314b; /* azul marino principal (headers) */
+  --navy-2: #2c3f5e; /* marino secundario */
+  --teal: #2fc4b6; /* teal principal (acciones) */
+  --teal-2: #27b0a5; /* teal hover */
+  --cream: #fff6ef; /* fondo cálido claro */
+  --cream-2: #f3e8de; /* contenedores / bordes suaves */
+  --ink: var(--navy); /* texto fuerte */
+  --ink-2: #4a5a73; /* texto secundario */
+  --muted: #6f7b91; /* texto atenuado */
+  --note: #ffffff; /* tarjetas claras */
+  --border: #e6dcd2; /* borde sutil */
+  --glass: rgba(47, 196, 182, 0.1); /* vidrio sutil en teal */
+  --primary: var(--teal); /* botón principal */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ------------- */
+/* ESTILOS BASE  */
+/* ------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background-color: var(--cream);
+  color: var(--ink);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* ---------------------- */
+/* SHELL / LAYOUT GENERAL */
+/* ---------------------- */
+
+.ss-main {
+  min-height: 100vh;
+  background-color: var(--cream);
+}
+
+/* -------- */
+/* HEADER   */
+/* -------- */
+
+.ss-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  padding: 0 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(18px);
+  background: rgba(255, 246, 239, 0.9);
+  border-bottom: 1px solid var(--border);
+  z-index: 20;
+}
+
+.ss-header-inner {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* marca + logo */
+
+.ss-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.ss-brand-logo {
+  width: 60px; /* MÁS GRANDE */
+  height: 60px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 2px solid var(--teal);
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ss-brand-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ss-brand-text {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--navy);
+}
+
+/* navegación */
+
+.ss-nav {
+  display: flex;
+  align-items: center;
+  gap: 2.25rem;
+}
+
+.ss-nav-link {
+  position: relative;
+  padding-bottom: 2px;
+  font-size: 0.95rem;
+  font-weight: 600; /* NEGRITAS EN MENÚ */
+  color: var(--navy);
+}
+
+.ss-nav-link:hover {
+  color: var(--navy-2);
+}
+
+.ss-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--teal), var(--navy));
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.15s ease-out;
+}
+
+.ss-nav-link:hover::after {
+  transform: scaleX(1);
+}
+
+/* acciones header */
+
+.ss-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* ----------------- */
+/* BOTONES GENERALES */
+/* ----------------- */
+
+.ss-btn,
+.ss-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.7rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease,
+    color 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.ss-btn {
+  background: var(--primary);
+  color: #ffffff;
+  border: 1px solid var(--primary);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.ss-btn:hover {
+  background: var(--teal-2);
+  border-color: var(--teal-2);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+}
+
+.ss-btn-outline {
+  background: transparent;
+  color: var(--navy);
+  border: 1px solid var(--navy-2);
+}
+
+.ss-btn-outline:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* versión compacta para header */
+
+.ss-nav-btn {
+  padding: 0.45rem 1.15rem;
+  font-size: 0.86rem;
+  box-shadow: none;
+}
+
+/* ----- */
+/* HERO  */
+/* ----- */
+
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding-bottom: 4rem;
+}
+
+/* compensa el header fijo */
+.hero::before {
+  content: "";
+  height: 64px;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* vídeo de fondo */
+
+.hero-media {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+
+.hero-tint {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(255, 246, 239, 0.98) 0%,
+    rgba(255, 246, 239, 0.92) 35%,
+    rgba(255, 246, 239, 0.6) 60%,
+    rgba(255, 246, 239, 0.18) 100%
+  );
+  opacity: 0.6;
+}
+
+/* contenido hero */
+
+.hero-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6.5rem 2.5rem 3.5rem;
+  display: flex;
+  align-items: center;
+}
+
+/* TARJETA (SIN BEIGE, SOLO TEXTO) */
+
+.hero-card {
+  background: transparent;
+  border-radius: 18px;
+  border: none;
+  box-shadow: none;
+  padding: 2.2rem 2.8rem 2.4rem;
+  max-width: 640px;
+  position: relative;
+}
+
+/* línea de color tipo freelancer */
+
+.hero-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1.1rem;
+  bottom: 1.1rem;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, var(--teal), var(--navy));
+}
+
+/* copy hero */
+
+.hero-title {
+  margin: 0 0 0.9rem 0.9rem;
+  font-size: 2.5rem; /* MÁS GRANDE */
+  line-height: 1.15;
+  font-weight: 800;
+  color: #111827; /* TEXTO NEGRO */
+}
+
+.hero-title span {
+  color: var(--teal);
+}
+
+.hero-copy {
+  margin: 0.25rem 0 0;
+  margin-left: 0.9rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #111827; /* TEXTO NEGRO */
+  max-width: 38rem;
+}
+
+/* acciones */
+
+.hero-actions {
+  margin-top: 1.6rem;
+  margin-left: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+
+/* BOTONES DEL HERO MÁS GRANDES (solo aquí) */
+
+.hero-cta,
+.hero-cta-outline {
+  padding: 0.9rem 2.3rem;
+  font-size: 1rem;
+}
+
+/* ------------- */
+/* RESPONSIVE    */
+/* ------------- */
+
+@media (max-width: 960px) {
+  .ss-header {
+    padding: 0 1.25rem;
+  }
+
+  .hero-inner {
+    padding: 6.5rem 1.5rem 3rem;
+  }
+
+  .hero-card {
+    padding: 1.7rem 1.8rem 2rem;
+  }
+
+  .hero-title {
+    font-size: 2.05rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-inner {
+    padding-top: 5.8rem;
+  }
+
+  .hero-card::before {
+    left: -2px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ss-header {
+    height: 58px;
+  }
+
+  .hero::before {
+    height: 58px;
+  }
 }
