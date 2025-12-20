@@ -1,13 +1,8 @@
-/* globals.css */
-
-/* Tailwind base (déjalo tal cual) */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ------------------ */
 /* PALETA SHIFTSITTER */
-/* ------------------ */
 :root {
   --navy: #22314b; /* azul marino principal (headers) */
   --navy-2: #2c3f5e; /* marino secundario */
@@ -24,9 +19,7 @@
   --primary: var(--teal); /* botón principal */
 }
 
-/* ------------- */
 /* ESTILOS BASE  */
-/* ------------- */
 
 *,
 *::before,
@@ -391,5 +384,84 @@ button {
 
   .hero::before {
     height: 58px;
+  }
+}
+
+/* ------------ */
+/* NAV RESPONSIVE */
+/* ------------ */
+
+/* Por defecto: desktop visible, mobile oculto */
+.ss-nav-desktop {
+  display: flex;
+}
+
+.ss-menu-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+
+.ss-menu-toggle span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--navy);
+}
+
+/* Menú móvil base (oculto) */
+.ss-mobile-menu {
+  display: none;
+}
+
+/* Breakpoint mobile */
+@media (max-width: 768px) {
+  .ss-nav-desktop {
+    display: none;
+  }
+
+  .ss-menu-toggle {
+    display: flex;
+  }
+
+  .ss-mobile-menu {
+    position: fixed;
+    top: 58px; /* altura aproximada del header en mobile */
+    left: 0;
+    right: 0;
+    padding: 1rem 1.5rem 1.5rem;
+    background: rgba(255, 246, 239, 0.98);
+    border-bottom: 1px solid var(--border);
+    display: none;
+    flex-direction: column;
+    gap: 0.75rem;
+    z-index: 19;
+  }
+
+  .ss-mobile-menu-open {
+    display: flex;
+  }
+
+  .ss-mobile-link {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  .ss-mobile-actions {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 }

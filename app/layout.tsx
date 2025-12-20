@@ -1,3 +1,4 @@
+// app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -17,27 +18,32 @@ export default function RootLayout({
       <body>
         <header className="ss-header">
           <div className="ss-header-inner">
+            {/* Marca + logo */}
             <div className="ss-brand">
               <div className="ss-brand-logo">
-                {/* Asegúrate de tener /public/logo-shiftsitter.png */}
                 <img src="/logo-shiftsitter.png" alt="ShiftSitter logo" />
               </div>
               <span className="ss-brand-text">ShiftSitter</span>
             </div>
 
-            <nav className="ss-nav">
-              <a href="#how-it-works" className="ss-nav-link">
+            {/* Navegación DESKTOP */}
+            <nav className="ss-nav ss-nav-desktop">
+              <a href="/" className="ss-nav-link">
+                Home
+              </a>
+              <a href="/#how-it-works" className="ss-nav-link">
                 How it works
               </a>
-              <a href="#employers" className="ss-nav-link">
+              <a href="/#employers" className="ss-nav-link">
                 For employers
               </a>
-              <a href="#families" className="ss-nav-link">
+              <a href="/#families" className="ss-nav-link">
                 For families
               </a>
             </nav>
 
-            <div className="ss-header-actions">
+            {/* Acciones DESKTOP */}
+            <div className="ss-header-actions ss-nav-desktop">
               <a href="/login" className="ss-btn-outline ss-nav-btn">
                 Log in
               </a>
