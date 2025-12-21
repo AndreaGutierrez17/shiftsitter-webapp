@@ -1,41 +1,30 @@
-// app/page.tsx
 export default function HomePage() {
   return (
     <>
-      {/* HERO CON VIDEO DE FONDO */}
-      <section className="hero">
-        {/* Vídeo de fondo */}
-        <video className="hero-media" autoPlay muted loop playsInline>
+      <section className="hero-split">
+        <video className="hero-split-media" autoPlay muted loop playsInline>
           <source src="/hero-shiftsitter.mp4" type="video/mp4" />
         </video>
 
-        {/* Velo / tintado */}
-        <div className="hero-tint" />
+        <div className="hero-split-tint" />
 
-        <div className="hero-inner">
-          <div className="hero-card" id="how-it-works">
-            <h1 className="hero-title">
-              Smart, verified childcare for{" "}
-              <span>shift-working families.</span>
+        <div className="hero-split-inner">
+          <div className="hero-split-card" id="how-it-works">
+            <h1 className="hero-split-title">
+              ShiftSitter - <span>your reciprocal childcare platform.</span>
             </h1>
 
-            <p className="hero-copy">
-              ShiftSitter connects trusted families in a reciprocal childcare
-              circle built around real shift work — nights, weekends and rotating
-              schedules included.
+            <p className="hero-split-copy">
+              A verified, trust-based community where parents support parents -
+              built for real shift schedules, nights, weekends, and rotating
+              hours.
             </p>
 
-            <p className="hero-copy">
-              Employers provide secure access, parents create their family
-              profile, and ShiftSitter helps keep every shift covered with the
-              right match.
-            </p>
-
-            <div className="hero-actions">
-              <a href="/signup" className="ss-btn hero-cta">
-                Create your account
+            <div className="hero-split-actions">
+              <a href="/signup" className="ss-btn hero-split-cta">
+                Get started
               </a>
-              <a href="#employers" className="ss-btn-outline hero-cta-outline">
+              <a href="#how" className="ss-btn-outline hero-split-cta-outline">
                 Learn how it works
               </a>
             </div>
@@ -43,68 +32,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===================== */}
-      {/* MARYLAND NOTE SECTION */}
-      {/* ===================== */}
-      <section className="py-5">
-        <div className="container">
-          <div className="alert alert-dark border-0 bg-note text-note note-band shadow-soft">
-            <div className="d-flex align-items-start align-items-md-center flex-column flex-md-row gap-3">
-              {/* Icono principal */}
-              <span className="note-icon flex-shrink-0" aria-hidden="true">
-                <i className="bi bi-geo-alt-fill"></i>
-              </span>
+      {/* QUITADO: Maryland note + countdown + early access + no commitments */}
 
-              <div className="flex-grow-1">
-                <div className="d-flex flex-wrap align-items-center gap-2">
-                  <strong className="note-title">Launching First in Maryland!</strong>
-                  <span className="badge rounded-pill note-badge">Local First</span>
-                  <span className="badge rounded-pill note-badge">Verified</span>
-                  <span className="badge rounded-pill note-badge">Community</span>
-                </div>
-
-                <p className="mb-2 mt-2 mb-md-0">
-                  We’re starting locally to build strong community support. Not in
-                  Maryland? Join the waitlist to be notified when we launch in your
-                  state.
-                </p>
-
-                {/* Mini chips con métricas/valor */}
-                <div className="d-flex flex-wrap gap-2 mt-2">
-                  <span className="note-chip">
-                    <i className="bi bi-shield-check me-1"></i> ID &amp; Safety
-                  </span>
-                  <span className="note-chip">
-                    <i className="bi bi-people-heart me-1"></i> Parent-to-Parent
-                  </span>
-                  <span className="note-chip">
-                    <i className="bi bi-clock-history me-1"></i> Shift-Friendly
-                  </span>
-                </div>
-              </div>
-
-              {/* CTA lateral */}
-              <div className="ms-md-3 mt-2 mt-md-0">
-                <a
-                  className="btn btn-primary btn-sm rounded-5 px-3"
-                  data-bs-toggle="offcanvas"
-                  href="#signupDrawer"
-                >
-                  Join Waitlist
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============ */}
-      {/* HOW IT WORKS */}
-      {/* ============ */}
       <section id="how" className="py-5">
         <div className="container">
           <div className="row g-4 align-items-center">
-            {/* Text / Card */}
             <div className="col-lg-6">
               <div className="card feature-card accent-2 p-4 h-100">
                 <div className="text-center mb-3">
@@ -114,20 +46,20 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-center mb-3">How it Works</h3>
                 <p className="mb-2 text-muted-strong text-center">
-                  Parents supporting parents — be <strong>matched</strong> with nearby
-                  mums and dads like you and enter into a reciprocal caregiving
-                  arrangement that fits your schedule and lifestyle.
+                  Parents supporting parents - be <strong>matched</strong> with
+                  nearby mums and dads like you and enter into a reciprocal
+                  caregiving arrangement that fits your schedule and lifestyle.
                 </p>
                 <p className="mb-0 text-muted-strong text-center">
-                  <strong>No cost</strong>, just smart matching and shared trust.
+                  <strong>No cost</strong>, just smart matching and shared
+                  trust.
                 </p>
               </div>
             </div>
 
-            {/* Image */}
             <div className="col-lg-6">
               <img
-                src="img/ShiftSitter.jpeg"
+                src="/ShiftSitter.jpeg"
                 className="img-fluid rounded-4 shadow-soft"
                 alt="Parents helping parents illustration"
               />
@@ -136,15 +68,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ========= */}
-      {/* FEATURES */}
-      {/* ========= */}
       <section id="features" className="py-5">
         <div className="container">
           <h2 className="text-center mb-4 features-title">Features</h2>
 
           <div className="row g-4">
-            {/* Trusted & Safe */}
             <div className="col-md-4">
               <div className="card feature-card accent-1 p-4 h-100 text-center">
                 <span className="icon-badge-xl mb-3">
@@ -157,7 +85,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Schedule Sync */}
             <div className="col-md-4">
               <div className="card feature-card accent-2 p-4 h-100 text-center">
                 <span className="icon-badge-xl mb-3">
@@ -170,7 +97,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Local Reciprocity */}
             <div className="col-md-4">
               <div className="card feature-card accent-3 p-4 h-100 text-center">
                 <span className="icon-badge-xl mb-3">
@@ -184,17 +110,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ============================== */}
-      {/* EMPLOYERS & CSR PARTNERS      */}
-      {/* ============================== */}
       <section id="partners" className="py-5 section-deep">
         <div className="container">
           <div className="row align-items-center g-4">
-            {/* Texto */}
             <div className="col-lg-6">
               <div className="d-flex align-items-center mb-3">
                 <img
-                  src="img/logo-shiftsitter.png"
+                  src="/logo-shiftsitter.png"
                   alt="ShiftSitter logo"
                   className="me-2 partner-logo"
                 />
@@ -208,8 +130,8 @@ export default function HomePage() {
               </p>
               <p className="mb-3">
                 Provide 12-month platform access for your workforce, or sponsor
-                local shift-working parents to help them find trusted, reciprocal
-                childcare within their community.
+                local shift-working parents to help them find trusted,
+                reciprocal childcare within their community.
               </p>
 
               <ul className="list-unstyled small mb-3">
@@ -227,7 +149,8 @@ export default function HomePage() {
                 <li className="feature-bullet">
                   <i className="bi bi-heart-pulse-fill"></i>
                   <span>
-                    Retains an estimated $250K+ value per 100 employees supported
+                    Retains an estimated $250K+ value per 100 employees
+                    supported
                   </span>
                 </li>
               </ul>
@@ -243,10 +166,9 @@ export default function HomePage() {
               </a>
             </div>
 
-            {/* Imagen */}
             <div className="col-lg-6">
               <img
-                src="img/Employers supporting families.jpeg"
+                src="/Employers%20supporting%20families.jpeg"
                 alt="Employers supporting families"
                 className="img-fluid rounded shadow-soft"
               />
@@ -255,12 +177,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== FOOTER ===== */}
-      <footer className="footer-ss py-4 border-top border-secondary-subtle bg-dark text-white text-center">
+      <footer className="footer-ss py-4 border-top border-secondary-subtle text-center">
         <div className="container">
           <div className="mb-2">
             <img
-              src="img/logo-shiftsitter.png"
+              src="/logo-shiftsitter.png"
               alt="ShiftSitter"
               className="footer-logo me-2"
               style={{ height: "36px", verticalAlign: "middle" }}
@@ -268,29 +189,28 @@ export default function HomePage() {
             <span className="fw-semibold">ShiftSitter</span>
           </div>
 
-          {/* LINKS LEGALES */}
           <div className="mb-2 small">
             <button
               type="button"
-              className="btn btn-link btn-sm text-white-50 text-decoration-none"
+              className="btn btn-link btn-sm text-decoration-none"
               data-bs-toggle="modal"
               data-bs-target="#privacyModal"
             >
               Privacy Policy
             </button>
-            {" · "}
+            {" | "}
             <button
               type="button"
-              className="btn btn-link btn-sm text-white-50 text-decoration-none"
+              className="btn btn-link btn-sm text-decoration-none"
               data-bs-toggle="modal"
               data-bs-target="#termsModal"
             >
               Terms &amp; Conditions
             </button>
-            {" · "}
+            {" | "}
             <button
               type="button"
-              className="btn btn-link btn-sm text-white-50 text-decoration-none"
+              className="btn btn-link btn-sm text-decoration-none"
               data-bs-toggle="modal"
               data-bs-target="#contactModal"
             >
@@ -298,7 +218,6 @@ export default function HomePage() {
             </button>
           </div>
 
-          {/* REDES */}
           <div className="mb-2 footer-social">
             <a
               href="https://www.instagram.com/shiftsitterofficial?igsh=cm80MG83eDBtcjlw"
@@ -335,12 +254,132 @@ export default function HomePage() {
             </a>
           </div>
 
-          {/* COPYRIGHT */}
-          <div className="small text-white-50">
-            © <span id="year"></span> ShiftSitter. All rights reserved.
+          <div className="small">
+            (c) {new Date().getFullYear()} ShiftSitter. All rights reserved.
           </div>
         </div>
       </footer>
+
+      {/* OFFCANVAS + MODALS reales (Bootstrap JS ya cargado en layout) */}
+      <div
+        className="offcanvas offcanvas-end bg-offcanvas"
+        tabIndex={-1}
+        id="partnerDrawer"
+        aria-labelledby="partnerDrawerLabel"
+      >
+        <div className="offcanvas-header">
+          <h5 className="offcanvas-title" id="partnerDrawerLabel">
+            Become a Sponsor
+          </h5>
+          <button
+            type="button"
+            className="btn-close"
+            data-bs-dismiss="offcanvas"
+            aria-label="Close"
+          />
+        </div>
+        <div className="offcanvas-body">
+          <p className="mb-0 text-muted-strong">
+            Sponsor access for shift-working families. We&apos;ll share the
+            options and next steps after launch.
+          </p>
+        </div>
+      </div>
+
+      <div
+        className="modal fade"
+        id="privacyModal"
+        tabIndex={-1}
+        aria-labelledby="privacyModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-scrollable">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="privacyModalLabel">
+                Privacy Policy
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              />
+            </div>
+            <div className="modal-body">
+              <p className="text-muted-strong mb-0">
+                Privacy policy content goes here (paste your exact landing
+                text).
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className="modal fade"
+        id="termsModal"
+        tabIndex={-1}
+        aria-labelledby="termsModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-scrollable">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="termsModalLabel">
+                Terms &amp; Conditions
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              />
+            </div>
+            <div className="modal-body">
+              <p className="text-muted-strong mb-0">
+                Terms content goes here (paste your exact landing text).
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className="modal fade"
+        id="contactModal"
+        tabIndex={-1}
+        aria-labelledby="contactModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="contactModalLabel">
+                Contact
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              />
+            </div>
+            <div className="modal-body">
+              <p className="text-muted-strong mb-2">
+                Email us at{" "}
+                <a className="contact-email" href="mailto:hello@shiftsitter.com">
+                  hello@shiftsitter.com
+                </a>
+              </p>
+              <p className="text-muted-strong mb-0">
+                (If you want the exact landing contact form, pega aqui ese bloque
+                y lo meto tal cual.)
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
