@@ -2,7 +2,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/supabase/client";
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState("");
@@ -18,6 +18,14 @@ export default function SignupPage() {
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
+
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      setErrorMsg(
+        "Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY."
+      );
+      return;
+    }
 
     if (!email || !password || !fullName) {
       setErrorMsg("Please fill in all required fields.");

@@ -1,75 +1,121 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { getSupabaseClient } from "@/lib/supabase/client";
+
 export default function EmployersPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleRegister = async () => {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      setError("Falta configurar NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    router.push("/employers/onboarding");
+  };
+
+  const handleLogin = async () => {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      setError("Falta configurar NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    router.push("/employers/onboarding");
+  };
+
   return (
-    <section className="employers">
-      <div className="employers-hero">
-        <p className="eyebrow">For employers & partners</p>
-        <h1>ShiftSitter for your workforce</h1>
-        <p className="lead">
-          Provide verified childcare access codes for shift-working teams. Zero admin overhead, fast launch,
-          and a trusted experience for parents who work nights, weekends, and rotating hours.
-        </p>
-        <div className="employers-cta">
-          <a className="ss-btn" href="mailto:hello@shiftsitter.com?subject=ShiftSitter%20Employer%20Access">
-            Talk to sales
-          </a>
-          <a className="ss-btn-outline" href="#plans">
-            View access options
-          </a>
-        </div>
-        <ul className="employers-pills">
-          <li>Access codes (25 / 50 / 100+)</li>
-          <li>One-time or recurring billing</li>
-          <li>No user management for HR</li>
-        </ul>
-      </div>
-
-      <div className="employers-grid">
-        <div className="employers-card">
-          <h3>Access codes, not overhead</h3>
-          <p>
-            Buy packs of single-use codes. Employees redeem them, complete onboarding, and start matching.
-            HR doesn&apos;t manage accounts.
+    <section className="families-auth">
+      <div className="families-auth-inner">
+        <div className="families-hero">
+          <p className="eyebrow">Para empleadores</p>
+          <h1>Lanza ShiftSitter para tu equipo</h1>
+          <p className="lead">
+            Crea acceso para colaboradores que trabajan turnos, noches o fines de semana. Comparte códigos, gestiona menos y
+            ofrece cuidado confiable a las familias de tu plantilla.
           </p>
+          <ul className="families-bullets">
+            <li>Códigos de acceso para equipos de operaciones, tiendas o plantas.</li>
+            <li>Onboarding guiado y soporte directo para tus empleados.</li>
+            <li>Listo para ID checks, acuerdos claros y visibilidad de uso.</li>
+          </ul>
         </div>
-        <div className="employers-card">
-          <h3>Safety-first</h3>
-          <p>
-            Built for verified parents. Ready for ID checks, background checks, and clear agreements between
-            families.
-          </p>
-        </div>
-        <div className="employers-card">
-          <h3>Launch in days</h3>
-          <p>
-            Stripe-enabled purchase, branded comms, and onboarding flows tuned for shift-working teams.
-            Minimal lift for your IT and HR teams.
-          </p>
-        </div>
-      </div>
 
-      <div className="employers-steps" id="plans">
-        <h2>How it works</h2>
-        <ol>
-          <li>Choose access: 25, 50, 100+ codes (or custom volume).</li>
-          <li>Purchase via Stripe or invoice for enterprise.</li>
-          <li>Distribute codes to employees; we handle onboarding.</li>
-          <li>Parents match, chat, and agree on care terms.</li>
-          <li>Usage reports and renewal reminders when codes run low.</li>
-        </ol>
-      </div>
+        <div className="families-card">
+          <h2>Acceso de empleadores</h2>
+          <p className="muted">Usa tu correo corporativo para crear o iniciar sesión en tu cuenta de empleador.</p>
 
-      <div className="employers-banner">
-        <div>
-          <h3>Ready to sponsor access?</h3>
-          <p>We&apos;ll set up your access pack, onboarding comms, and support for your managers.</p>
-        </div>
-        <div className="employers-banner-actions">
-          <a className="ss-btn" href="mailto:hello@shiftsitter.com?subject=ShiftSitter%20Employer%20Access">
-            Start with a code pack
-          </a>
-          <a className="ss-btn-outline" href="/families">
-            See the family experience
-          </a>
+          <div className="form-field">
+            <label htmlFor="email">Correo corporativo</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="tu@empresa.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="ss-input"
+            />
+          </div>
+
+          <div className="form-field">
+            <label htmlFor="password">Contraseña</label>
+            <input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="ss-input"
+            />
+          </div>
+
+          {error && <p className="form-error">{error}</p>}
+
+          <div className="actions">
+            <button onClick={handleRegister} disabled={loading} className="ss-btn w-100">
+              Crear cuenta de empleador
+            </button>
+            <button onClick={handleLogin} className="ss-btn-outline w-100" disabled={loading}>
+              Iniciar sesión
+            </button>
+          </div>
         </div>
       </div>
     </section>
