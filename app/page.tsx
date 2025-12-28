@@ -2,7 +2,15 @@ export default function HomePage() {
   return (
     <>
       <section className="hero-split">
-        <video className="hero-split-media" autoPlay muted loop playsInline>
+        <video
+          className="hero-split-media"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          poster="/ShiftSitter.jpeg"
+        >
           <source src="/hero-shiftsitter.mp4" type="video/mp4" />
         </video>
 

@@ -1,121 +1,99 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { getSupabaseClient } from "@/lib/supabase/client";
+import { FormEvent, useState } from "react";
 
 export default function EmployersPage() {
-  const router = useRouter();
+  const [companyName, setCompanyName] = useState("");
+  const [contactName, setContactName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
-  const handleRegister = async () => {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      setError("Falta configurar NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY.");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    setLoading(false);
-
-    if (error) {
-      setError(error.message);
-      return;
-    }
-
-    router.push("/employers/onboarding");
-  };
-
-  const handleLogin = async () => {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      setError("Falta configurar NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY.");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    setLoading(false);
-
-    if (error) {
-      setError(error.message);
-      return;
-    }
-
-    router.push("/employers/onboarding");
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    console.log("Employer intake", { companyName, contactName, email });
+    setSubmitted(true);
   };
 
   return (
     <section className="families-auth">
       <div className="families-auth-inner">
         <div className="families-hero">
-          <p className="eyebrow">Para empleadores</p>
-          <h1>Lanza ShiftSitter para tu equipo</h1>
+          <p className="eyebrow">Employers</p>
+          <h1>Launch ShiftSitter for your team</h1>
           <p className="lead">
-            Crea acceso para colaboradores que trabajan turnos, noches o fines de semana. Comparte códigos, gestiona menos y
-            ofrece cuidado confiable a las familias de tu plantilla.
+            Intake to enable ShiftSitter for employees working shifts, nights,
+            or weekends. No matching here—this captures details to create your
+            tenant and prepare guided onboarding.
           </p>
           <ul className="families-bullets">
-            <li>Códigos de acceso para equipos de operaciones, tiendas o plantas.</li>
-            <li>Onboarding guiado y soporte directo para tus empleados.</li>
-            <li>Listo para ID checks, acuerdos claros y visibilidad de uso.</li>
+            <li>Built for operations, retail, and plant teams.</li>
+            <li>We coordinate employee verification and clear agreements.</li>
+            <li>Structured to connect with your systems or an API route later.</li>
           </ul>
         </div>
 
         <div className="families-card">
-          <h2>Acceso de empleadores</h2>
-          <p className="muted">Usa tu correo corporativo para crear o iniciar sesión en tu cuenta de empleador.</p>
-
-          <div className="form-field">
-            <label htmlFor="email">Correo corporativo</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="tu@empresa.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="ss-input"
-            />
+          <div className="card-header">
+            <h2>Employer interest form</h2>
+            <p className="muted">
+              Complete the form below. This is an intake only—it doesn’t create
+              Supabase records yet.
+            </p>
           </div>
 
-          <div className="form-field">
-            <label htmlFor="password">Contraseña</label>
-            <input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="ss-input"
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="form-stack">
+            <div className="form-field">
+              <label htmlFor="companyName">Company name</label>
+              <input
+                id="companyName"
+                type="text"
+                placeholder="Acme Manufacturing"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                className="ss-input"
+                required
+              />
+            </div>
 
-          {error && <p className="form-error">{error}</p>}
+            <div className="form-field">
+              <label htmlFor="contactName">Contact name</label>
+              <input
+                id="contactName"
+                type="text"
+                placeholder="Alex Rivera"
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+                className="ss-input"
+                required
+              />
+            </div>
 
-          <div className="actions">
-            <button onClick={handleRegister} disabled={loading} className="ss-btn w-100">
-              Crear cuenta de empleador
-            </button>
-            <button onClick={handleLogin} className="ss-btn-outline w-100" disabled={loading}>
-              Iniciar sesión
-            </button>
-          </div>
+            <div className="form-field">
+              <label htmlFor="email">Contact email</label>
+              <input
+                id="email"
+                type="email"
+                placeholder="alex@acme.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="ss-input"
+                required
+              />
+            </div>
+
+            {submitted && (
+              <p className="success">
+                Thanks for your interest. We’ll reach out to enable your
+                employees.
+              </p>
+            )}
+
+            <div className="actions">
+              <button type="submit" className="ss-btn w-100">
+                Submit interest
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </section>
