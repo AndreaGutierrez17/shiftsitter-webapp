@@ -564,11 +564,6 @@ export default function QuestionsPage() {
           Continue
         </button>
       </div>
-
-      {/* DEBUG (quítalo cuando ya guardemos en DB) */}
-      <pre style={{ marginTop: 16, fontSize: 12, opacity: 0.75, overflowX: "auto" }}>
-        {JSON.stringify(answers, null, 2)}
-      </pre>
     </div>
   );
 }
