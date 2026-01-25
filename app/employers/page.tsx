@@ -8,94 +8,103 @@ export default function EmployersPage() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     console.log("Employer intake", { companyName, contactName, email });
     setSubmitted(true);
   };
 
   return (
-    <section className="families-auth">
-      <div className="families-auth-inner">
-        <div className="families-hero">
-          <p className="eyebrow">Employers</p>
-          <h1>Launch ShiftSitter for your team</h1>
-          <p className="lead">
-            Intake to enable ShiftSitter for employees working shifts, nights,
-            or weekends. No matching here—this captures details to create your
-            tenant and prepare guided onboarding.
+    <main className="auth-split">
+      <section className="auth-left">
+        <div className="auth-left-inner">
+          <p className="eyebrow">
+            <i className="bi bi-building me-2" />
+            Employers & CSR partners
           </p>
-          <ul className="families-bullets">
-            <li>Built for operations, retail, and plant teams.</li>
-            <li>We coordinate employee verification and clear agreements.</li>
-            <li>Structured to connect with your systems or an API route later.</li>
+
+          <h1 className="auth-title">
+            Reduce absenteeism by helping shift-working employees{" "}
+            <span>keep every shift covered.</span>
+          </h1>
+
+          <p className="auth-lead">
+            This is an employer intake page — not matching. We capture details to
+            provision access and align on rollout.
+          </p>
+
+          <ul className="auth-points">
+            <li>
+              <i className="bi bi-people-fill" /> Built for hospitals, plants, warehouses, operations
+            </li>
+            <li>
+              <i className="bi bi-shield-lock" /> Clear agreements & a verified-first approach
+            </li>
+            <li>
+              <i className="bi bi-graph-up-arrow" /> Designed for early demos and beta rollout
+            </li>
           </ul>
         </div>
+      </section>
 
-        <div className="families-card">
-          <div className="card-header">
+      <section className="auth-right">
+        <div className="auth-card">
+          <div className="auth-card-head">
             <h2>Employer interest form</h2>
             <p className="muted">
-              Complete the form below. This is an intake only—it doesn’t create
-              Supabase records yet.
+              We’ll use this to follow up and prepare your company onboarding.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="form-stack">
             <div className="form-field">
-              <label htmlFor="companyName">Company name</label>
+              <label>Company name</label>
               <input
-                id="companyName"
+                className="ss-input"
                 type="text"
-                placeholder="Acme Manufacturing"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                className="ss-input"
+                placeholder="Acme Manufacturing"
                 required
               />
             </div>
 
             <div className="form-field">
-              <label htmlFor="contactName">Contact name</label>
+              <label>Contact name</label>
               <input
-                id="contactName"
+                className="ss-input"
                 type="text"
-                placeholder="Alex Rivera"
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
-                className="ss-input"
+                placeholder="Alex Rivera"
                 required
               />
             </div>
 
             <div className="form-field">
-              <label htmlFor="email">Contact email</label>
+              <label>Work email</label>
               <input
-                id="email"
+                className="ss-input"
                 type="email"
-                placeholder="alex@acme.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="ss-input"
+                placeholder="alex@acme.com"
                 required
               />
             </div>
 
             {submitted && (
-              <p className="success">
-                Thanks for your interest. We’ll reach out to enable your
-                employees.
-              </p>
+              <div className="auth-msg">
+                Thanks — we received your request. We’ll reach out shortly.
+              </div>
             )}
 
-            <div className="actions">
-              <button type="submit" className="ss-btn w-100">
-                Submit interest
-              </button>
-            </div>
+            <button className="ss-btn w-100 auth-primary" type="submit">
+              Submit interest <i className="bi bi-send ms-2" />
+            </button>
           </form>
         </div>
-      </div>
-    </section>
+      </section>
+    </main>
   );
 }

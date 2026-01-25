@@ -1,124 +1,115 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseClient } from "@/lib/supabase/client";
 
 export default function FamiliesOnboardingPage() {
   const router = useRouter();
-  const [checkingSession, setCheckingSession] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const supabase = useMemo(() => getSupabaseClient(), []);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const supabase = getSupabaseClient();
-    let active = true;
-
-    const syncSession = async () => {
-      const { data, error: sessionError } = await supabase.auth.getSession();
-
-      if (!active) return;
-
-      if (sessionError) {
-        setError(
-          "We could not validate your session. Reload the page or sign in again."
-        );
-        setCheckingSession(false);
-        return;
-      }
-
+    const guard = async () => {
+      const { data } = await supabase.auth.getSession();
       if (!data.session) {
         router.replace("/families");
         return;
       }
-
-      setCheckingSession(false);
+      setChecking(false);
     };
+    guard();
 
-    syncSession();
-
-    const {
-      data: authListener,
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        router.replace("/families");
-      }
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) router.replace("/families");
     });
 
-    return () => {
-      active = false;
-      authListener?.subscription.unsubscribe();
-    };
-  }, [router]);
+    return () => sub.subscription.unsubscribe();
+  }, [router, supabase]);
 
-  const handleSignOut = async () => {
-    setError(null);
-    try {
-      const supabase = getSupabaseClient();
-      const { error: signOutError } = await supabase.auth.signOut();
-      if (signOutError) throw signOutError;
-      router.replace("/families");
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "We couldn’t sign you out. Please try again.";
-      setError(message);
-    }
-  };
+  async function logout() {
+    await supabase.auth.signOut();
+    router.replace("/families");
+  }
 
-  const handleContinue = () => {
-    router.push("/families/onboarding?step=profile");
-  };
-
-  if (checkingSession) {
+  if (checking) {
     return (
-      <section className="families-auth">
-        <div className="families-auth-inner">
-          <p className="muted">Validating your session...</p>
+      <main className="auth-shell">
+        <div className="auth-card">
+          <div className="auth-card-head">
+            <h1>Preparing your onboarding…</h1>
+            <p className="muted">
+              Securing your session and loading your next step.
+            </p>
+          </div>
+          <div className="auth-loader" aria-hidden="true" />
         </div>
-      </section>
+      </main>
     );
   }
 
   return (
-    <section className="families-auth">
-      <div className="families-auth-inner">
-        <div className="families-hero">
-          <p className="eyebrow">Onboarding</p>
-          <h1>Complete your family profile</h1>
-          <p className="lead">
-            Confirm your availability, define your care values, and share what
-            you need to cover shifts, nights, or weekends. We use this to show
-            you only families that truly align with you.
+    <main className="onb-shell">
+      <div className="onb-card">
+        <div className="onb-head">
+          <div className="onb-badge">
+            <i className="bi bi-heart-pulse" />
+            Needs + Values onboarding
+          </div>
+          <h1>Tell us what “covered” looks like for your family.</h1>
+          <p className="muted">
+            This takes 3–5 minutes. Your answers power your match score and show
+            you exactly why someone is compatible.
           </p>
-          <ul className="families-bullets">
-            <li>Granular availability by day and shift.</li>
-            <li>Clear care preferences and expectations.</li>
-            <li>Continuous validation: if your session expires, we redirect you to sign in.</li>
-          </ul>
         </div>
 
-        <div className="families-card">
-          <div className="card-header">
-            <h2>Your next step</h2>
-            <p className="muted">
-              Complete Needs + Values to begin safe matching with other
-              families.
-            </p>
+        <div className="onb-grid">
+          <div className="onb-item">
+            <i className="bi bi-geo-alt" />
+            <div>
+              <strong>Location & distance</strong>
+              <div className="muted">So matches stay practical, not theoretical.</div>
+            </div>
           </div>
 
-          {error && <p className="form-error">{error}</p>}
-
-          <div className="actions">
-            <button onClick={handleContinue} className="ss-btn w-100">
-              Continue
-            </button>
-            <button onClick={handleSignOut} className="ss-btn-outline w-100">
-              Sign out
-            </button>
+          <div className="onb-item">
+            <i className="bi bi-calendar2-week" />
+            <div>
+              <strong>Shift schedule</strong>
+              <div className="muted">Nights, weekends, rotating hours — we account for it.</div>
+            </div>
           </div>
+
+          <div className="onb-item">
+            <i className="bi bi-people" />
+            <div>
+              <strong>Children & routines</strong>
+              <div className="muted">Ages, bedtime, pickup windows, comfort needs.</div>
+            </div>
+          </div>
+
+          <div className="onb-item">
+            <i className="bi bi-shield-check" />
+            <div>
+              <strong>Trust & boundaries</strong>
+              <div className="muted">Safety expectations and agreement preferences.</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="onb-actions">
+          <button
+            className="ss-btn"
+            onClick={() => router.push("/families/onboarding/questions")}
+          >
+            Continue to questions <i className="bi bi-arrow-right ms-2" />
+          </button>
+
+          <button className="ss-btn-outline" onClick={logout}>
+            Log out
+          </button>
         </div>
       </div>
-    </section>
+    </main>
   );
 }

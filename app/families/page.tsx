@@ -1,126 +1,210 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseClient } from "@/lib/supabase/client";
 
-type AuthAction = "register" | "login" | "idle";
+type Mode = "signup" | "login";
 
 export default function FamiliesPage() {
   const router = useRouter();
+  const supabase = useMemo(() => getSupabaseClient(), []);
+
+  const [mode, setMode] = useState<Mode>("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [status, setStatus] = useState<AuthAction>("idle");
-  const [error, setError] = useState<string | null>(null);
 
-  const loading = status !== "idle";
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
 
-  const handleAuth = async (mode: Exclude<AuthAction, "idle">) => {
-    setStatus(mode);
-    setError(null);
+  const callbackUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/auth/callback`
+      : "";
+
+  async function signWithOAuth(provider: "google" | "facebook") {
+    setMsg(null);
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: callbackUrl,
+        },
+      });
+      if (error) throw error;
+    } catch (e: any) {
+      setMsg(e?.message ?? "Something went wrong. Please try again.");
+      setBusy(false);
+    }
+  }
+
+  async function handleEmailAuth() {
+    setMsg(null);
+    setBusy(true);
 
     try {
-      const supabase = getSupabaseClient();
-
-      const { error: authError } =
-        mode === "register"
-          ? await supabase.auth.signUp({ email, password })
-          : await supabase.auth.signInWithPassword({ email, password });
-
-      if (authError) {
-        throw authError;
+      if (!email || !password) {
+        setMsg("Please enter your email and password.");
+        setBusy(false);
+        return;
       }
 
-      router.push("/families/onboarding");
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "We couldn’t complete your request. Please try again.";
-      setError(message);
+      if (mode === "signup") {
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+
+        if (data.session) {
+          router.push("/families/onboarding");
+          return;
+        }
+
+        setMsg(
+          "Account created. Please check your email to confirm your address, then return to log in."
+        );
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+
+        if (data.session) router.push("/families/onboarding");
+      }
+    } catch (e: any) {
+      setMsg(e?.message ?? "We couldn’t complete your request. Please try again.");
     } finally {
-      setStatus("idle");
+      setBusy(false);
     }
-  };
+  }
 
   return (
-    <section className="families-auth">
-      <div className="families-auth-inner">
-        <div className="families-hero">
-          <p className="eyebrow">For shift-working families</p>
-          <h1>Access ShiftSitter</h1>
-          <p className="lead">
-            Create a secure account with your email and password. Connect with
-            nearby families who share your shift schedule, values, and care
-            expectations.
+    <main className="auth-split">
+      <section className="auth-left">
+        <div className="auth-left-inner">
+          <p className="eyebrow">
+            <i className="bi bi-stars me-2" />
+            For shift-working families
           </p>
-          <ul className="families-bullets">
-            <li>Real Supabase Auth login (email + password).</li>
-            <li>Needs &amp; values onboarding for precise matching.</li>
-            <li>See only families that fit your area and availability.</li>
+
+          <h1 className="auth-title">
+            Find trusted, reciprocal childcare that fits{" "}
+            <span>real shift schedules.</span>
+          </h1>
+
+          <p className="auth-lead">
+            Create your account, complete a short onboarding, then start swiping
+            through compatible families — with clear match reasons, not guesswork.
+          </p>
+
+          <ul className="auth-points">
+            <li>
+              <i className="bi bi-shield-check" /> Verified-first approach
+            </li>
+            <li>
+              <i className="bi bi-clock-history" /> Built for nights, weekends, rotating shifts
+            </li>
+            <li>
+              <i className="bi bi-people" /> Parents supporting parents — with agreements
+            </li>
           </ul>
         </div>
+      </section>
 
-        <div className="families-card">
-          <div className="card-header">
-            <h2>Create or log in</h2>
+      <section className="auth-right">
+        <div className="auth-card">
+          <div className="auth-card-head">
+            <h2>{mode === "signup" ? "Create your account" : "Welcome back"}</h2>
             <p className="muted">
-              Real authentication—no fake logins. Use an email you check often.
+              {mode === "signup"
+                ? "Use email/password or continue with a trusted provider."
+                : "Sign in to continue your matching flow."}
             </p>
           </div>
 
+          <div className="oauth-row">
+            <button
+              type="button"
+              className="oauth-btn"
+              onClick={() => signWithOAuth("google")}
+              disabled={busy}
+            >
+              <i className="bi bi-google" />
+              Continue with Google
+            </button>
+
+            <button
+              type="button"
+              className="oauth-btn"
+              onClick={() => signWithOAuth("facebook")}
+              disabled={busy}
+            >
+              <i className="bi bi-facebook" />
+              Continue with Facebook
+            </button>
+          </div>
+
+          <div className="divider">
+            <span>or</span>
+          </div>
+
           <div className="form-field">
-            <label htmlFor="email">Email</label>
+            <label>Email</label>
             <input
-              id="email"
+              className="ss-input"
               type="email"
               autoComplete="email"
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="ss-input"
-              disabled={loading}
+              disabled={busy}
             />
           </div>
 
           <div className="form-field">
-            <label htmlFor="password">Password</label>
+            <label>Password</label>
             <input
-              id="password"
+              className="ss-input"
               type="password"
-              autoComplete="current-password"
-              placeholder="********"
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="ss-input"
-              disabled={loading}
+              disabled={busy}
             />
           </div>
 
-          {error && <p className="form-error">{error}</p>}
+          {msg && <div className="auth-msg">{msg}</div>}
 
-          <div className="actions">
-            <button
-              onClick={() => handleAuth("register")}
-              disabled={loading}
-              className="ss-btn w-100"
-            >
-              {status === "register" ? "Creating account..." : "Create account"}
-            </button>
-            <button
-              onClick={() => handleAuth("login")}
-              className="ss-btn-outline w-100"
-              disabled={loading}
-            >
-              {status === "login" ? "Signing in..." : "Sign in"}
-            </button>
-          </div>
-          <p className="muted tiny">
-            ShiftSitter uses Supabase Auth with ANON keys only. Passwords are
-            never stored in plain text.
+          <button
+            type="button"
+            className="ss-btn w-100 auth-primary"
+            onClick={handleEmailAuth}
+            disabled={busy}
+          >
+            {busy
+              ? "Please wait…"
+              : mode === "signup"
+              ? "Create account"
+              : "Sign in"}
+          </button>
+
+          <button
+            type="button"
+            className="ss-btn-outline w-100 auth-secondary"
+            onClick={() => setMode(mode === "signup" ? "login" : "signup")}
+            disabled={busy}
+          >
+            {mode === "signup"
+              ? "I already have an account"
+              : "Create a new account"}
+          </button>
+
+          <p className="auth-footnote">
+            By continuing, you agree to ShiftSitter’s Terms & Privacy Policy.
           </p>
         </div>
-      </div>
-    </section>
+      </section>
+    </main>
   );
 }
