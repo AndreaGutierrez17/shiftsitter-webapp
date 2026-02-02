@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getSupabaseClient } from "@/lib/supabase/client";
 
 type QuestionType = "single" | "multi" | "text" | "number" | "range";
 
@@ -20,11 +22,8 @@ type Question = {
 type Answers = Record<string, any>;
 
 const QUESTIONS: Question[] = [
-  // =========================
-  // SECTION 1 — WHAT YOU NEED
-  // =========================
 
-  // A) Scheduling Needs
+
   {
     id: "need_days",
     step: 1,
@@ -57,7 +56,7 @@ const QUESTIONS: Question[] = [
     ],
   },
 
-  // B) Duration of Need
+
   {
     id: "need_duration",
     step: 2,
@@ -74,7 +73,7 @@ const QUESTIONS: Question[] = [
     ],
   },
 
-  // C) Setting Preference
+
   {
     id: "need_setting",
     step: 2,
@@ -88,7 +87,7 @@ const QUESTIONS: Question[] = [
     ],
   },
 
-  // D) Your Children
+ 
   {
     id: "need_children_count",
     step: 3,
@@ -130,7 +129,7 @@ const QUESTIONS: Question[] = [
     placeholder: "Optional details…",
   },
 
-  // E) Safety & Home Environment (hard filters)
+
   {
     id: "home_smokefree",
     step: 4,
@@ -179,7 +178,7 @@ const QUESTIONS: Question[] = [
     ],
   },
 
-  // F) Transport / Distance (hard filters)
+
   {
     id: "home_zip",
     step: 5,
@@ -228,7 +227,7 @@ const QUESTIONS: Question[] = [
     ],
   },
 
-  // G) Optional Care-Extras
+  
   {
     id: "extras_need",
     step: 6,
@@ -246,11 +245,7 @@ const QUESTIONS: Question[] = [
     ],
   },
 
-  // =========================
-  // SECTION 2 — WHAT YOU OFFER
-  // =========================
 
-  // A) Availability to Give Care
   {
     id: "give_days",
     step: 7,
@@ -296,7 +291,7 @@ const QUESTIONS: Question[] = [
     ],
   },
 
-  // B) Where you can provide care
+ 
   {
     id: "give_setting",
     step: 8,
@@ -310,7 +305,7 @@ const QUESTIONS: Question[] = [
     ],
   },
 
-  // C) Capacity
+ 
   {
     id: "give_total_children_capacity",
     step: 9,
@@ -340,7 +335,7 @@ const QUESTIONS: Question[] = [
     ],
   },
 
-  // D) Special requirements
+ 
   {
     id: "give_special_needs_ok",
     step: 10,
@@ -365,7 +360,7 @@ const QUESTIONS: Question[] = [
     ],
   },
 
-  // E) Extras you're willing to offer
+  
   {
     id: "extras_offer",
     step: 11,
@@ -385,8 +380,15 @@ const QUESTIONS: Question[] = [
 ];
 
 export default function QuestionsPage() {
+  const router = useRouter();
+  const supabase = useMemo(() => getSupabaseClient(), []);
+
   const [answers, setAnswers] = useState<Answers>({});
   const [step, setStep] = useState<number>(1);
+
+  const [ready, setReady] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const steps = useMemo(() => {
     const uniq = Array.from(new Set(QUESTIONS.map((q) => q.step))).sort((a, b) => a - b);
@@ -394,16 +396,151 @@ export default function QuestionsPage() {
   }, []);
 
   const stepQuestions = useMemo(() => QUESTIONS.filter((q) => q.step === step), [step]);
+  const lastStep = steps[steps.length - 1];
+
+  const shouldShowSpecialText = answers["need_special_considerations_yesno"] === "yes";
+
+ 
+  useEffect(() => {
+    const boot = async () => {
+      setSaveError(null);
+
+      const { data: sessionRes, error: sessionErr } = await supabase.auth.getSession();
+      if (sessionErr) {
+        setSaveError(sessionErr.message);
+        return;
+      }
+
+      const session = sessionRes.session;
+      if (!session) {
+        router.replace("/families");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("user_answers")
+        .select("answers")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+
+      if (error) {
+        
+        setSaveError(error.message);
+      } else if (data?.answers && typeof data.answers === "object") {
+        setAnswers(data.answers as Answers);
+      }
+
+      setReady(true);
+    };
+
+    boot();
+  }, [router, supabase]);
 
   const setValue = (id: string, value: any) => {
     setAnswers((prev) => ({ ...prev, [id]: value }));
   };
 
-  const next = () => setStep((s) => Math.min(s + 1, steps[steps.length - 1]));
-  const prev = () => setStep((s) => Math.max(s - 1, steps[0]));
+  const missingRequiredForStep = (): string[] => {
+    const qs = stepQuestions.filter((q) => {
+      if (q.id === "need_special_considerations_text") return shouldShowSpecialText;
+      return true;
+    });
 
-  // simple conditional: only show special considerations text if "yes"
-  const shouldShowSpecialText = answers["need_special_considerations_yesno"] === "yes";
+    const missing: string[] = [];
+
+    for (const q of qs) {
+      if (!q.required) continue;
+
+      const v = answers[q.id];
+
+      if (q.type === "multi") {
+        if (!Array.isArray(v) || v.length === 0) missing.push(q.id);
+        continue;
+      }
+
+      if (q.type === "text") {
+        if (typeof v !== "string" || v.trim().length === 0) missing.push(q.id);
+        continue;
+      }
+
+      if (q.type === "number") {
+        if (typeof v !== "number" || Number.isNaN(v)) missing.push(q.id);
+        continue;
+      }
+
+    
+      if (v === undefined || v === null || v === "") missing.push(q.id);
+    }
+
+    return missing;
+  };
+
+
+  const saveAnswers = async (): Promise<boolean> => {
+    setSaving(true);
+    setSaveError(null);
+
+    const { data: sessionRes, error: sessionErr } = await supabase.auth.getSession();
+    if (sessionErr) {
+      setSaving(false);
+      setSaveError(sessionErr.message);
+      return false;
+    }
+
+    const session = sessionRes.session;
+    if (!session) {
+      setSaving(false);
+      router.replace("/families");
+      return false;
+    }
+
+    const payload = {
+      user_id: session.user.id,
+      answers: answers,
+    };
+
+    const { error } = await supabase.from("user_answers").upsert(payload, { onConflict: "user_id" });
+
+    setSaving(false);
+
+    if (error) {
+      setSaveError(error.message);
+      return false;
+    }
+
+    return true;
+  };
+
+  const nextOrSave = async () => {
+    const missing = missingRequiredForStep();
+    if (missing.length) {
+      setSaveError("Please complete the required fields before continuing.");
+      return;
+    }
+
+    if (step < lastStep) {
+      setSaveError(null);
+      setStep((s) => Math.min(s + 1, lastStep));
+      return;
+    }
+
+    const ok = await saveAnswers();
+    if (ok) router.push("/families/match");
+  };
+
+  const prev = () => {
+    setSaveError(null);
+    setStep((s) => Math.max(s - 1, steps[0]));
+  };
+
+  if (!ready) {
+    return (
+      <main style={{ maxWidth: 980, margin: "0 auto", padding: "28px 18px" }}>
+        <h1 style={{ margin: 0 }}>Loading…</h1>
+        <p style={{ opacity: 0.7 }}>Preparing onboarding.</p>
+      </main>
+    );
+  }
 
   return (
     <div className="ss-container" style={{ maxWidth: 980, margin: "0 auto", padding: "28px 18px" }}>
@@ -412,6 +549,21 @@ export default function QuestionsPage() {
         <p style={{ opacity: 0.7, marginTop: 8, marginBottom: 0 }}>
           Step {steps.indexOf(step) + 1} of {steps.length}
         </p>
+
+        {saveError ? (
+          <div
+            style={{
+              marginTop: 12,
+              background: "rgba(255,0,0,.06)",
+              border: "1px solid rgba(255,0,0,.18)",
+              padding: "10px 12px",
+              borderRadius: 12,
+              fontWeight: 700,
+            }}
+          >
+            {saveError}
+          </div>
+        ) : null}
       </div>
 
       <div style={{ display: "grid", gap: 14 }}>
@@ -430,7 +582,9 @@ export default function QuestionsPage() {
                 padding: 16,
               }}
             >
-              <div style={{ fontWeight: 800, marginBottom: 6 }}>{q.title}</div>
+              <div style={{ fontWeight: 800, marginBottom: 6 }}>
+                {q.title} {q.required ? <span style={{ color: "#d11" }}>*</span> : null}
+              </div>
               {q.subtitle ? <div style={{ opacity: 0.72, marginBottom: 12 }}>{q.subtitle}</div> : null}
 
               {/* SINGLE */}
@@ -469,9 +623,7 @@ export default function QuestionsPage() {
                         key={opt.value}
                         type="button"
                         onClick={() => {
-                          const nextArr = active
-                            ? current.filter((v) => v !== opt.value)
-                            : [...current, opt.value];
+                          const nextArr = active ? current.filter((v) => v !== opt.value) : [...current, opt.value];
                           setValue(q.id, nextArr);
                         }}
                         style={{
@@ -534,14 +686,14 @@ export default function QuestionsPage() {
         <button
           type="button"
           onClick={prev}
-          disabled={step === steps[0]}
+          disabled={step === steps[0] || saving}
           style={{
             padding: "12px 16px",
             borderRadius: 14,
             border: "1px solid rgba(0,0,0,.12)",
             background: "#fff",
             cursor: "pointer",
-            opacity: step === steps[0] ? 0.55 : 1,
+            opacity: step === steps[0] || saving ? 0.55 : 1,
             fontWeight: 800,
           }}
         >
@@ -550,7 +702,8 @@ export default function QuestionsPage() {
 
         <button
           type="button"
-          onClick={next}
+          onClick={nextOrSave}
+          disabled={saving}
           style={{
             padding: "12px 16px",
             borderRadius: 14,
@@ -559,9 +712,10 @@ export default function QuestionsPage() {
             color: "#fff",
             cursor: "pointer",
             fontWeight: 900,
+            opacity: saving ? 0.75 : 1,
           }}
         >
-          Continue
+          {saving ? "Saving…" : step === lastStep ? "Finish & Save" : "Continue"}
         </button>
       </div>
     </div>

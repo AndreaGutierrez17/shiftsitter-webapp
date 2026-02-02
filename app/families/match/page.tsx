@@ -112,7 +112,7 @@ export default function FamiliesMatchPage() {
   }
 
   function like() {
-    // later: save like to Supabase
+   
     setIndex((i) => i + 1);
   }
 

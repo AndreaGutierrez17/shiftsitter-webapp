@@ -36,7 +36,7 @@ export default function SignupPage() {
       email,
       password,
       options: {
-        // ✅ Para confirm email + OAuth callback
+       
         emailRedirectTo: `${origin}/auth/callback`,
         data: {
           role: "parent",
