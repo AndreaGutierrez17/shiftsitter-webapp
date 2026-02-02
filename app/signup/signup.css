@@ -1,0 +1,164 @@
+/* ONLY /signup — scoped */
+
+.ss-auth {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 80px 16px;
+  background: #fbf2ee;
+}
+
+.ss-card {
+  width: min(560px, 100%);
+  background: #fff;
+  border-radius: 18px;
+  padding: 34px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.1);
+}
+
+.ss-title {
+  margin: 0 0 6px;
+  font-size: 42px;
+  font-weight: 800;
+  color: #111;
+}
+
+.ss-subtitle {
+  margin: 0 0 18px;
+  color: #5b5b5b;
+  font-size: 15px;
+}
+
+.ss-providerRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.ss-providerBtn {
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: #fff;
+  color: #111;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+
+.ss-providerBtn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(33,183,168,.45);
+  box-shadow: 0 10px 22px rgba(0,0,0,.10);
+}
+
+.ss-providerIcon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: rgba(33,183,168,.10);
+  border: 1px solid rgba(33,183,168,.22);
+  font-weight: 900;
+}
+
+.ss-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 12px;
+  color: rgba(0,0,0,.45);
+  font-size: 12px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.ss-divider::before,
+.ss-divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: rgba(0,0,0,.12);
+}
+
+.ss-label {
+  font-size: 13px;
+  font-weight: 900;
+  color: #111;
+  margin: 12px 0 6px;
+  display: block;
+}
+
+.ss-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: #fff;
+  color: #111;
+  outline: none;
+  font-size: 16px;
+}
+
+.ss-input:focus {
+  border-color: rgba(33,183,168,.55);
+  box-shadow: 0 0 0 4px rgba(33,183,168,.12);
+}
+
+.ss-passRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.ss-passToggle {
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: rgba(0,0,0,.03);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.ss-error {
+  margin: 10px 0 0;
+  color: #b00020;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.ss-success {
+  margin: 10px 0 0;
+  color: #137a3a;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.ss-cta {
+  margin-top: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border: none;
+  border-radius: 14px;
+  background: #21b7a8;
+  color: #fff;
+  font-weight: 900;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 12px 22px rgba(33,183,168,.28);
+}
+
+.ss-cta:disabled {
+  opacity: .7;
+  cursor: wait;
+}

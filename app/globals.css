@@ -79,6 +79,15 @@ button {
   align-items: center;
   gap: 0.65rem;
 }
+.ss-brand,
+.ss-brand:focus,
+.ss-brand:hover,
+.ss-brand:active {
+  text-decoration: none;
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
 .ss-brand-logo {
   width: 60px;
   height: 60px;
