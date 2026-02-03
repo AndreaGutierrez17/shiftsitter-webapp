@@ -1,34 +1,28 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getSupabaseClient } from "@/lib/supabase/client";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase/client";
 
 export default function FamiliesOnboardingPage() {
   const router = useRouter();
-  const supabase = useMemo(() => getSupabaseClient(), []);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const guard = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (!user) {
         router.replace("/families");
         return;
       }
       setChecking(false);
-    };
-    guard();
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) router.replace("/families");
     });
 
-    return () => sub.subscription.unsubscribe();
-  }, [router, supabase]);
+    return () => unsub();
+  }, [router]);
 
   async function logout() {
-    await supabase.auth.signOut();
+    await signOut(auth);
     router.replace("/families");
   }
 
@@ -68,7 +62,9 @@ export default function FamiliesOnboardingPage() {
             <i className="bi bi-geo-alt" />
             <div>
               <strong>Location & distance</strong>
-              <div className="muted">So matches stay practical, not theoretical.</div>
+              <div className="muted">
+                So matches stay practical, not theoretical.
+              </div>
             </div>
           </div>
 
@@ -76,7 +72,9 @@ export default function FamiliesOnboardingPage() {
             <i className="bi bi-calendar2-week" />
             <div>
               <strong>Shift schedule</strong>
-              <div className="muted">Nights, weekends, rotating hours — we account for it.</div>
+              <div className="muted">
+                Nights, weekends, rotating hours — we account for it.
+              </div>
             </div>
           </div>
 

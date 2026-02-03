@@ -2,7 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getSupabaseClient } from "@/lib/supabase/client";
+
+import { onAuthStateChanged } from "firebase/auth";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+  Timestamp,
+} from "firebase/firestore";
+
+import { auth, db } from "@/lib/firebase/client";
 
 type QuestionType = "single" | "multi" | "text" | "number" | "range";
 
@@ -21,9 +31,10 @@ type Question = {
 
 type Answers = Record<string, any>;
 
+/** ============================
+ *  QUESTIONS (tus mismas)
+ *  ============================ */
 const QUESTIONS: Question[] = [
-
-
   {
     id: "need_days",
     step: 1,
@@ -56,7 +67,6 @@ const QUESTIONS: Question[] = [
     ],
   },
 
-
   {
     id: "need_duration",
     step: 2,
@@ -73,7 +83,6 @@ const QUESTIONS: Question[] = [
     ],
   },
 
-
   {
     id: "need_setting",
     step: 2,
@@ -87,7 +96,6 @@ const QUESTIONS: Question[] = [
     ],
   },
 
- 
   {
     id: "need_children_count",
     step: 3,
@@ -128,7 +136,6 @@ const QUESTIONS: Question[] = [
     required: false,
     placeholder: "Optional details…",
   },
-
 
   {
     id: "home_smokefree",
@@ -178,7 +185,6 @@ const QUESTIONS: Question[] = [
     ],
   },
 
-
   {
     id: "home_zip",
     step: 5,
@@ -227,7 +233,6 @@ const QUESTIONS: Question[] = [
     ],
   },
 
-  
   {
     id: "extras_need",
     step: 6,
@@ -244,7 +249,6 @@ const QUESTIONS: Question[] = [
       { value: "pet_help", label: "Pet help", icon: "bi-heart" },
     ],
   },
-
 
   {
     id: "give_days",
@@ -291,7 +295,6 @@ const QUESTIONS: Question[] = [
     ],
   },
 
- 
   {
     id: "give_setting",
     step: 8,
@@ -305,7 +308,6 @@ const QUESTIONS: Question[] = [
     ],
   },
 
- 
   {
     id: "give_total_children_capacity",
     step: 9,
@@ -335,7 +337,6 @@ const QUESTIONS: Question[] = [
     ],
   },
 
- 
   {
     id: "give_special_needs_ok",
     step: 10,
@@ -360,7 +361,6 @@ const QUESTIONS: Question[] = [
     ],
   },
 
-  
   {
     id: "extras_offer",
     step: 11,
@@ -379,9 +379,20 @@ const QUESTIONS: Question[] = [
   },
 ];
 
+/** ================
+ * Firestore shape
+ * profiles/{uid}
+ * {
+ *   onboarding: { answers: {...}, step: number, lastSavedAt: timestamp },
+ *   onboardingCompleted: boolean,
+ *   updatedAt: timestamp
+ * }
+ * ================= */
+
 export default function QuestionsPage() {
   const router = useRouter();
-  const supabase = useMemo(() => getSupabaseClient(), []);
+
+  const [uid, setUid] = useState<string | null>(null);
 
   const [answers, setAnswers] = useState<Answers>({});
   const [step, setStep] = useState<number>(1);
@@ -395,46 +406,59 @@ export default function QuestionsPage() {
     return uniq.length ? uniq : [1];
   }, []);
 
-  const stepQuestions = useMemo(() => QUESTIONS.filter((q) => q.step === step), [step]);
   const lastStep = steps[steps.length - 1];
+
+  const stepQuestions = useMemo(
+    () => QUESTIONS.filter((q) => q.step === step),
+    [step]
+  );
 
   const shouldShowSpecialText = answers["need_special_considerations_yesno"] === "yes";
 
- 
+  // Auth boot
   useEffect(() => {
-    const boot = async () => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
       setSaveError(null);
 
-      const { data: sessionRes, error: sessionErr } = await supabase.auth.getSession();
-      if (sessionErr) {
-        setSaveError(sessionErr.message);
-        return;
-      }
-
-      const session = sessionRes.session;
-      if (!session) {
+      if (!user) {
+        setUid(null);
         router.replace("/families");
         return;
       }
 
-      const { data, error } = await supabase
-        .from("user_answers")
-        .select("answers")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
+      setUid(user.uid);
 
-      if (error) {
-        
-        setSaveError(error.message);
-      } else if (data?.answers && typeof data.answers === "object") {
-        setAnswers(data.answers as Answers);
+      // Load onboarding from profiles/{uid}
+      try {
+        const ref = doc(db, "profiles", user.uid);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          const data = snap.data() as any;
+          const onboarding = data?.onboarding;
+
+          if (onboarding?.answers && typeof onboarding.answers === "object") {
+            setAnswers(onboarding.answers as Answers);
+          }
+          if (typeof onboarding?.step === "number" && onboarding.step >= steps[0] && onboarding.step <= lastStep) {
+            setStep(onboarding.step);
+          } else {
+            setStep(steps[0]);
+          }
+        } else {
+          // first time
+          setStep(steps[0]);
+        }
+
+        setReady(true);
+      } catch (e: any) {
+        setSaveError(e?.message ?? "Could not load your onboarding data.");
+        setReady(true);
       }
+    });
 
-      setReady(true);
-    };
-
-    boot();
-  }, [router, supabase]);
+    return () => unsub();
+  }, [router, steps, lastStep]);
 
   const setValue = (id: string, value: any) => {
     setAnswers((prev) => ({ ...prev, [id]: value }));
@@ -468,256 +492,259 @@ export default function QuestionsPage() {
         continue;
       }
 
-    
       if (v === undefined || v === null || v === "") missing.push(q.id);
     }
 
     return missing;
   };
 
+  const persist = async (nextStep: number, completed?: boolean): Promise<boolean> => {
+    if (!uid) return false;
 
-  const saveAnswers = async (): Promise<boolean> => {
     setSaving(true);
     setSaveError(null);
 
-    const { data: sessionRes, error: sessionErr } = await supabase.auth.getSession();
-    if (sessionErr) {
+    try {
+      const ref = doc(db, "profiles", uid);
+
+      const payload: any = {
+        onboarding: {
+          answers,
+          step: nextStep,
+          lastSavedAt: serverTimestamp(),
+        },
+        updatedAt: serverTimestamp(),
+      };
+
+      if (typeof completed === "boolean") {
+        payload.onboardingCompleted = completed;
+      }
+
+      await setDoc(ref, payload, { merge: true });
+
       setSaving(false);
-      setSaveError(sessionErr.message);
-      return false;
-    }
-
-    const session = sessionRes.session;
-    if (!session) {
+      return true;
+    } catch (e: any) {
       setSaving(false);
-      router.replace("/families");
+      setSaveError(e?.message ?? "Could not save. Please try again.");
       return false;
     }
-
-    const payload = {
-      user_id: session.user.id,
-      answers: answers,
-    };
-
-    const { error } = await supabase.from("user_answers").upsert(payload, { onConflict: "user_id" });
-
-    setSaving(false);
-
-    if (error) {
-      setSaveError(error.message);
-      return false;
-    }
-
-    return true;
   };
 
-  const nextOrSave = async () => {
+  const nextOrFinish = async () => {
     const missing = missingRequiredForStep();
     if (missing.length) {
       setSaveError("Please complete the required fields before continuing.");
       return;
     }
 
+    // middle steps: save + advance
     if (step < lastStep) {
-      setSaveError(null);
-      setStep((s) => Math.min(s + 1, lastStep));
+      const nextStep = Math.min(step + 1, lastStep);
+      const ok = await persist(nextStep);
+      if (!ok) return;
+
+      setStep(nextStep);
       return;
     }
 
-    const ok = await saveAnswers();
+    // last step: final save + completed
+    const ok = await persist(lastStep, true);
     if (ok) router.push("/families/match");
   };
 
-  const prev = () => {
+  const prev = async () => {
     setSaveError(null);
-    setStep((s) => Math.max(s - 1, steps[0]));
+    const prevStep = Math.max(step - 1, steps[0]);
+
+    // Save step position (no need to block if it fails, but better to try)
+    await persist(prevStep);
+
+    setStep(prevStep);
   };
 
   if (!ready) {
     return (
-      <main style={{ maxWidth: 980, margin: "0 auto", padding: "28px 18px" }}>
-        <h1 style={{ margin: 0 }}>Loading…</h1>
-        <p style={{ opacity: 0.7 }}>Preparing onboarding.</p>
+      <main className="auth-shell">
+        <div className="onb-card">
+          <h1 className="match-title">Loading…</h1>
+          <p className="muted">Preparing onboarding.</p>
+          <div className="auth-loader" />
+        </div>
       </main>
     );
   }
 
+  const stepIndex = steps.indexOf(step);
+  const progressPct = Math.round(((stepIndex + 1) / steps.length) * 100);
+
   return (
-    <div className="ss-container" style={{ maxWidth: 980, margin: "0 auto", padding: "28px 18px" }}>
-      <div style={{ marginBottom: 18 }}>
-        <h1 style={{ fontSize: 30, lineHeight: 1.1, margin: 0 }}>Onboarding questions</h1>
-        <p style={{ opacity: 0.7, marginTop: 8, marginBottom: 0 }}>
-          Step {steps.indexOf(step) + 1} of {steps.length}
-        </p>
-
-        {saveError ? (
-          <div
-            style={{
-              marginTop: 12,
-              background: "rgba(255,0,0,.06)",
-              border: "1px solid rgba(255,0,0,.18)",
-              padding: "10px 12px",
-              borderRadius: 12,
-              fontWeight: 700,
-            }}
-          >
-            {saveError}
-          </div>
-        ) : null}
-      </div>
-
-      <div style={{ display: "grid", gap: 14 }}>
-        {stepQuestions
-          .filter((q) => {
-            if (q.id === "need_special_considerations_text") return shouldShowSpecialText;
-            return true;
-          })
-          .map((q) => (
-            <div
-              key={q.id}
-              style={{
-                background: "#ffffff",
-                border: "1px solid rgba(0,0,0,.08)",
-                borderRadius: 18,
-                padding: 16,
-              }}
-            >
-              <div style={{ fontWeight: 800, marginBottom: 6 }}>
-                {q.title} {q.required ? <span style={{ color: "#d11" }}>*</span> : null}
-              </div>
-              {q.subtitle ? <div style={{ opacity: 0.72, marginBottom: 12 }}>{q.subtitle}</div> : null}
-
-              {/* SINGLE */}
-              {q.type === "single" && q.options?.length ? (
-                <div style={{ display: "grid", gap: 10 }}>
-                  {q.options.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setValue(q.id, opt.value)}
-                      style={{
-                        textAlign: "left",
-                        padding: "12px 14px",
-                        borderRadius: 14,
-                        border: answers[q.id] === opt.value ? "2px solid #1fb6aa" : "1px solid rgba(0,0,0,.12)",
-                        background: answers[q.id] === opt.value ? "rgba(31,182,170,.10)" : "#fff",
-                        cursor: "pointer",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-
-              {/* MULTI */}
-              {q.type === "multi" && q.options?.length ? (
-                <div style={{ display: "grid", gap: 10 }}>
-                  {q.options.map((opt) => {
-                    const current: string[] = Array.isArray(answers[q.id]) ? answers[q.id] : [];
-                    const active = current.includes(opt.value);
-
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => {
-                          const nextArr = active ? current.filter((v) => v !== opt.value) : [...current, opt.value];
-                          setValue(q.id, nextArr);
-                        }}
-                        style={{
-                          textAlign: "left",
-                          padding: "12px 14px",
-                          borderRadius: 14,
-                          border: active ? "2px solid #1fb6aa" : "1px solid rgba(0,0,0,.12)",
-                          background: active ? "rgba(31,182,170,.10)" : "#fff",
-                          cursor: "pointer",
-                          fontWeight: 700,
-                        }}
-                      >
-                        {opt.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : null}
-
-              {/* TEXT */}
-              {q.type === "text" ? (
-                <input
-                  value={answers[q.id] ?? ""}
-                  onChange={(e) => setValue(q.id, e.target.value)}
-                  placeholder={q.placeholder ?? ""}
-                  style={{
-                    width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: 14,
-                    border: "1px solid rgba(0,0,0,.12)",
-                    outline: "none",
-                    fontWeight: 600,
-                  }}
-                />
-              ) : null}
-
-              {/* NUMBER */}
-              {q.type === "number" ? (
-                <input
-                  type="number"
-                  value={answers[q.id] ?? ""}
-                  min={q.min}
-                  max={q.max}
-                  onChange={(e) => setValue(q.id, e.target.value === "" ? "" : Number(e.target.value))}
-                  style={{
-                    width: 220,
-                    padding: "12px 14px",
-                    borderRadius: 14,
-                    border: "1px solid rgba(0,0,0,.12)",
-                    outline: "none",
-                    fontWeight: 700,
-                  }}
-                />
-              ) : null}
+    <main className="onb-shell">
+      <div className="onb-card">
+        <div className="q-head">
+          <div className="q-head-top">
+            <div>
+              <span className="onb-badge">
+                <i className="bi bi-stars" />
+                Needs + Values onboarding
+              </span>
+              <h1 style={{ marginTop: ".9rem" }}>
+                Tell us what “covered” looks like for your family.
+              </h1>
+              <p className="muted" style={{ marginTop: ".35rem" }}>
+                Step {stepIndex + 1} of {steps.length}
+              </p>
             </div>
-          ))}
-      </div>
 
-      <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-        <button
-          type="button"
-          onClick={prev}
-          disabled={step === steps[0] || saving}
-          style={{
-            padding: "12px 16px",
-            borderRadius: 14,
-            border: "1px solid rgba(0,0,0,.12)",
-            background: "#fff",
-            cursor: "pointer",
-            opacity: step === steps[0] || saving ? 0.55 : 1,
-            fontWeight: 800,
-          }}
-        >
-          Back
-        </button>
+            <button
+              type="button"
+              className="q-ghost"
+              onClick={() => router.push("/logout")}
+              disabled={saving}
+              title="Log out"
+            >
+              Log out
+            </button>
+          </div>
 
-        <button
-          type="button"
-          onClick={nextOrSave}
-          disabled={saving}
-          style={{
-            padding: "12px 16px",
-            borderRadius: 14,
-            border: 0,
-            background: "#1fb6aa",
-            color: "#fff",
-            cursor: "pointer",
-            fontWeight: 900,
-            opacity: saving ? 0.75 : 1,
-          }}
-        >
-          {saving ? "Saving…" : step === lastStep ? "Finish & Save" : "Continue"}
-        </button>
+          <div className="q-progress" aria-label="Progress">
+            <div className="q-progress-bar" style={{ width: `${progressPct}%` }} />
+          </div>
+
+          {saveError ? <div className="q-error">{saveError}</div> : null}
+        </div>
+
+        <div className="q-stack">
+          {stepQuestions
+            .filter((q) => {
+              if (q.id === "need_special_considerations_text") return shouldShowSpecialText;
+              return true;
+            })
+            .map((q) => (
+              <div className="q-card" key={q.id}>
+                <div className="q-card-title">
+                  <div>
+                    <div className="q-title">
+                      {q.title}{" "}
+                      {q.required ? <span style={{ color: "#991b1b" }}>*</span> : null}
+                    </div>
+                    {q.subtitle ? <div className="q-sub muted">{q.subtitle}</div> : null}
+                  </div>
+                </div>
+
+                {/* SINGLE */}
+                {q.type === "single" && q.options?.length ? (
+                  <div className="q-options">
+                    {q.options.map((opt) => {
+                      const active = answers[q.id] === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          className={`q-opt ${active ? "is-active" : ""}`}
+                          onClick={() => setValue(q.id, opt.value)}
+                          disabled={saving}
+                        >
+                          {opt.icon ? <i className={`bi ${opt.icon}`} /> : null}
+                          <span>{opt.label}</span>
+                          {active ? <i className="bi bi-check2-circle q-check" /> : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
+
+                {/* MULTI */}
+                {q.type === "multi" && q.options?.length ? (
+                  <div className="q-options">
+                    {q.options.map((opt) => {
+                      const current: string[] = Array.isArray(answers[q.id]) ? answers[q.id] : [];
+                      const active = current.includes(opt.value);
+
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          className={`q-opt ${active ? "is-active" : ""}`}
+                          onClick={() => {
+                            const nextArr = active
+                              ? current.filter((v) => v !== opt.value)
+                              : [...current, opt.value];
+                            setValue(q.id, nextArr);
+                          }}
+                          disabled={saving}
+                        >
+                          {opt.icon ? <i className={`bi ${opt.icon}`} /> : null}
+                          <span>{opt.label}</span>
+                          {active ? <i className="bi bi-check2-circle q-check" /> : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
+
+                {/* TEXT */}
+                {q.type === "text" ? (
+                  <input
+                    className="ss-input"
+                    value={answers[q.id] ?? ""}
+                    onChange={(e) => setValue(q.id, e.target.value)}
+                    placeholder={q.placeholder ?? ""}
+                    disabled={saving}
+                  />
+                ) : null}
+
+                {/* NUMBER */}
+                {q.type === "number" ? (
+                  <input
+                    className="ss-input"
+                    style={{ maxWidth: 220 }}
+                    type="number"
+                    value={answers[q.id] ?? ""}
+                    min={q.min}
+                    max={q.max}
+                    onChange={(e) => setValue(q.id, e.target.value === "" ? "" : Number(e.target.value))}
+                    disabled={saving}
+                  />
+                ) : null}
+              </div>
+            ))}
+        </div>
+
+        <div className="q-actions">
+          <button
+            type="button"
+            className="match-btn ghost"
+            onClick={prev}
+            disabled={step === steps[0] || saving}
+          >
+            <i className="bi bi-arrow-left" />
+            Back
+          </button>
+
+          <button
+            type="button"
+            className="match-btn primary"
+            onClick={nextOrFinish}
+            disabled={saving}
+          >
+            {saving ? (
+              <>
+                <i className="bi bi-cloud-arrow-up" />
+                Saving…
+              </>
+            ) : step === lastStep ? (
+              <>
+                Continue to matching <i className="bi bi-arrow-right" />
+              </>
+            ) : (
+              <>
+                Continue <i className="bi bi-arrow-right" />
+              </>
+            )}
+          </button>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/Carlitos%20Almaraz/Desktop/shiftsitter-app-web/app/logout/page.tsx"],"sourcesContent":["\"use client\";\n\nimport { useEffect } from \"react\";\nimport { redirect } from \"next/navigation\";\nimport { getSupabaseClient } from \"@/lib/supabase/client\";\n\nexport default function LogoutPage() {\n  useEffect(() => {\n    const run = async () => {\n      const supabase = getSupabaseClient();\n      await supabase.auth.signOut();\n      redirect(\"/families\");\n    };\n    run();\n  }, []);\n\n  return (\n    <main className=\"min-h-screen flex items-center justify-center bg-[#fff6ef]\">\n      <p className=\"text-sm text-[#22314b]\">Signing you out...</p>\n    </main>\n  );\n}\n"],"names":[],"mappings":";;;;;AAEA;AACA;;;;;;;;AAHA;;;;AAMe,SAAS;;IACtB,IAAA,0KAAS;gCAAC;YACR,MAAM;4CAAM;oBACV,MAAM,WAAW;oBACjB,MAAM,SAAS,IAAI,CAAC,OAAO;oBAC3B,IAAA,iJAAQ,EAAC;gBACX;;YACA;QACF;+BAAG,EAAE;IAEL,qBACE,6LAAC;QAAK,WAAU;kBACd,cAAA,6LAAC;YAAE,WAAU;sBAAyB;;;;;;;;;;;AAG5C;GAfwB;KAAA"}}]
+}

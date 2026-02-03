@@ -1081,3 +1081,82 @@ button {
   .auth-title{font-size:2.0rem}
   .onb-grid{grid-template-columns:1fr}
 }
+
+/* === Password UI upgrades (Families Auth) === */
+.password-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrap .ss-input {
+  padding-right: 44px; /* espacio para el ojito */
+}
+
+.pw-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  padding: 6px;
+  line-height: 1;
+  cursor: pointer;
+ hookup: none;
+  opacity: 0.85;
+}
+
+.pw-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.pw-toggle i {
+  font-size: 1.1rem;
+}
+
+.pw-rules {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(29, 43, 58, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.pw-help {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: rgba(29, 43, 58, 0.75);
+  font-weight: 600;
+}
+
+.pw-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.pw-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+.pw-item i {
+  font-size: 14px;
+}
+
+.pw-item.ok {
+  color: rgba(20, 110, 70, 0.95);
+}
+
+.pw-item.bad {
+  color: rgba(150, 35, 35, 0.9);
+}

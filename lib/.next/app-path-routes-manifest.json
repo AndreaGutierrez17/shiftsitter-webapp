@@ -1,0 +1,9 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/employers/onboarding/page": "/employers/onboarding",
+  "/employers/page": "/employers",
+  "/families/onboarding/page": "/families/onboarding",
+  "/families/page": "/families",
+  "/page": "/"
+}
