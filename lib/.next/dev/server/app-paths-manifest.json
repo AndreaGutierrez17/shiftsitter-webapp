@@ -1,9 +1,0 @@
-{
-  "/families/onboarding/page": "app/families/onboarding/page.js",
-  "/families/onboarding/questions/page": "app/families/onboarding/questions/page.js",
-  "/families/page": "app/families/page.js",
-  "/login/page": "app/login/page.js",
-  "/logout/page": "app/logout/page.js",
-  "/page": "app/page.js",
-  "/signup/page": "app/signup/page.js"
-}
