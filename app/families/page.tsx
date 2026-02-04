@@ -59,12 +59,12 @@ export default function FamiliesPage() {
     return "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character (e.g. @, /, $).";
   }
 
-  // ✅ Single source of truth: users/{uid}
+  
   async function ensureFamilyDocAndRedirect(uid: string) {
     const ref = doc(db, "users", uid);
     const snap = await getDoc(ref);
 
-    // Si no existe el doc, lo creamos
+  
     if (!snap.exists()) {
       const user = auth.currentUser;
       const payload: FamilyUserDoc = {
@@ -82,7 +82,7 @@ export default function FamiliesPage() {
 
     const data = snap.data() as Partial<FamilyUserDoc> | undefined;
 
-    // Si existe, pero no tiene role o onboarding, lo normalizamos
+  
     const needsPatch =
       data?.role !== "family" || typeof data?.onboardingCompleted !== "boolean";
 
@@ -100,7 +100,7 @@ export default function FamiliesPage() {
       );
     }
 
-    // ✅ Redirect inteligente
+    
     if (data?.onboardingCompleted === true) {
       router.push("/families/match");
     } else {
@@ -120,7 +120,7 @@ export default function FamiliesPage() {
 
       const cred = await signInWithPopup(auth, selectedProvider);
 
-      // Asegura doc + redirección
+      
       await ensureFamilyDocAndRedirect(cred.user.uid);
     } catch (e: any) {
       const code = e?.code as string | undefined;
@@ -157,8 +157,7 @@ export default function FamiliesPage() {
       if (mode === "signup") {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
 
-        // (Opcional) poner displayName básico para el user
-        // puedes quitarlo si no lo quieres
+      
         if (auth.currentUser && !auth.currentUser.displayName) {
           await updateProfile(auth.currentUser, { displayName: "Family" });
         }

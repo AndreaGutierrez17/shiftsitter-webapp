@@ -401,7 +401,7 @@ export default function QuestionsPage() {
 
   const shouldShowSpecialText = answers["need_special_considerations_yesno"] === "yes";
 
-  // Auth boot + LOAD + GATE (si ya completó, NO vuelve aquí)
+  
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       setSaveError(null);
@@ -421,7 +421,7 @@ export default function QuestionsPage() {
         if (snap.exists()) {
           const data = snap.data() as any;
 
-          // ✅ GATE: si ya completó onboarding, no lo dejes volver a preguntas
+        
           if (data?.onboardingCompleted) {
             router.replace("/families/match");
             return;
@@ -541,7 +541,7 @@ export default function QuestionsPage() {
       return;
     }
 
-    // ✅ last step: final save + completed + redirect
+    
     const ok = await persist(lastStep, true);
     if (ok) router.push("/families/match");
   };

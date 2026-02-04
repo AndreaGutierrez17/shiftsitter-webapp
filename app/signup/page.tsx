@@ -53,7 +53,7 @@ export default function SignupPage() {
     return "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character (e.g. @, /, $).";
   }
 
-  // ✅ Reutilizable: asegura doc y redirige bien
+  
   async function ensureFamilyDocAndRedirect(uid: string) {
     const ref = doc(db, "users", uid);
     const snap = await getDoc(ref);

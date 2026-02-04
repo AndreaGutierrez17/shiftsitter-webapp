@@ -15,7 +15,7 @@ import { auth } from "./client";
 export async function fbSignUp(email: string, password: string, displayName?: string) {
   const res = await createUserWithEmailAndPassword(auth, email, password);
 
-  // Opcional: guardar nombre visible
+
   if (displayName?.trim()) {
     await updateProfile(res.user, { displayName: displayName.trim() });
   }
